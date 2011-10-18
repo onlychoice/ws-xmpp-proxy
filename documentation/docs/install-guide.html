@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Openfire Connection Manager Module Installation Guide</title>
+  <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Openfire Connection Manager Module Installation Guide</h1>
+
+<p>Connection managers distribute the load of client connections to improve
+the scalability of XMPP servers. This document will guide you through installing
+the connection manager module as a standalone application. For a full list of
+features and more information, please visit the
+Openfire website: <a href="http://www.igniterealtime.org/projects/openfire"
+ target="_top">http://www.igniterealtime.org/projects/openfire</a></p>
+
+<h2>Installation</h2>
+<ul>
+<h3>Windows</h3>
+
+ Uncompress connection_manager.zip to <tt>c:\Program Files\connection_manager</tt>.
+ 
+ <h3>Linux/Unix</h3>
+ 
+ If using the .tar.gz, extract the archive to <tt>/opt</tt> or <tt>/usr/bin</tt>:
+
+ <p><tt>tar -xzvf connection_manager_3_0_0.tar.gz<br>
+ mv connection_manager /opt</tt></p>
+
+ <p><b>Note:</b> the .tar.gz and .zip builds do not contain a bundled Java runtime (JRE). Therefore, you must have 
+ JDK or JRE 1.5.0 (Java 5) or later installed on your system. You can check your java version by typing "java -version" 
+ at the command line and (if necessary) upgrade your Java installation by visiting http://java.sun.com.</p>
+
+  </ul>
+<h2>Setup Overview</h2>
+<p>To complete the installation of the connection manager, you'll need to
+perform each of the following steps: </p>
+<ol>
+  <li><a href="#config">Setup</a> - Configure properties to connect to XMPP server.</li>
+  <li><a href="#dns">DNS Setup</a> - Configure DNS to properly route traffic.</li>
+</ol>
+
+<p>This document also includes information on:</p>
+
+<ul>
+    <li><a href="#windows">Running under Windows</a>
+    <li><a href="#unix">Running under Unix/Linux</a>
+</ul>
+
+<h2><a name="distribution">Files in the Distribution</a></h2>
+<p> The files in your distribution should be as follows (some
+sub-directories omitted for brevity): </p>
+<pre>connection_manager/
+ |- readme.html
+ |- license.html
+ |- conf/
+ |- bin/
+ |- lib/
+ |- resources/
+     |-security/
+ |- documentation/</pre>
+
+<ul> 
+	 <li>The <tt>conf</tt> directory is where the connection manager module stores
+configuration files.</li>
+  <li>The <tt>bin</tt> directory contains the server executables. Depending
+on which distribution you installed, different executables will be available.</li>
+  <li>The <tt>lib</tt> directory contains libraries necessary for
+running the connection manager.</li>
+  <li>The <tt>resources/security</tt> directory is where the connection manager
+maintains keystores to support SSL connection security.</li>
+  <li>The <tt>documentation</tt> directory contains server
+documentation.</li>
+</ul><p>
+
+</p>
+<h2><a name="config"></a>Properties Setup</h2>
+<p>Properties are stored in conf/manager.xml. Only two properties are required to be
+configured. The <b>xmpp.domain</b> property that specifies the name of the target server
+that clients want to connect to and <b>xmpp.password</b> that specifies the password to
+use to log into the server.
+</p>
+
+<h2><a name="dns">DNS Setup</a></h2>
+<p>XMPP requires that when clients or servers want to connect to another server, a DNS
+SRV lookup must be performed to get the real IP address and port to use to connect.
+Currently, connection managers only handle client-to-server traffic while server-to-server
+will go directly to the server. You will need to configure the DNS server so that client traffic
+is routed to connection managers. Depending on your architecture you may want to use a load
+balancer in front of a set of connection managers or just configure local DNS servers to
+redirect clients to a specific connection manager.<br>
+</p>
+
+<hr>
+
+<h2><a name="windows">Running the Connection Manager Module in Windows</a></h2>
+
+<p>Use the cmanager.bat batch file to start the connection manager. The file is located
+in the <tt>bin/</tt> directory of your Connection Manager installation.
+
+<h3>Custom Parameters</h3>
+
+<p>Advanced users may wish to pass in parameters to the Java virtual machine (VM) to customize
+    the runtime environment of the connection manager module. You can do this by editing the bin/cmanager.bat
+    or bin/cmanager.sh files and configuring the JVM_SETTINGS variable accordingly. For example, to set
+    the minimum heap size to 512 MB and max VM heap size to 1024 MB, you'd use:
+
+<pre>-Xms512m -Xmx1024m</pre>
+</p>
+
+<h2><a name="unix">Running the Connection Manager Module in Linux/Unix</a></h2>
+
+You can start the connection manager module using the <tt>bin/cmanager</tt> script in your
+installation:
+<p>
+<table border="0" cellpadding="2" cellspacing="0"><td bgcolor="#EEEEEE">
+<font face="verdana, arial, helvetica" size="2">
+You must make the ant script executable. From the build directory, type:
+<p></font><code>
+chmod u+x cmanager.sh
+</code>
+</td></table>
+</p>
+<p>
+# ./cmanager<br>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+org.jivesoftware.multiplexer
+org.jivesoftware.multiplexer.net
+org.jivesoftware.multiplexer.net.http
+org.jivesoftware.multiplexer.spi
+org.jivesoftware.multiplexer.starter
+org.jivesoftware.multiplexer.task
+org.jivesoftware.util
+org.jivesoftware.util.log
+org.jivesoftware.util.log.filter
+org.jivesoftware.util.log.format
+org.jivesoftware.util.log.output
+org.jivesoftware.util.log.output.io
+org.jivesoftware.util.log.output.io.rotate
+org.jivesoftware.util.log.util

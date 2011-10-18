@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file stores bootstrap properties needed by Connection Managers.
+    Property names must be in the format: "prop.name.is.blah=value"
+    That will be stored as:
+        <prop>
+            <name>
+                <is>
+                    <blah>value</blah>
+                </is>
+            </name>
+        </prop>
+-->
+<!-- root element, all properties must be under this element -->
+<jive>
+    <xmpp>
+        <!-- Name of the server to connect. This property is required. -->
+        <domain>zju-winpro</domain>
+        <!-- IP address or hostname of the XMPP server. If not defined then a DNS SRV lookup
+        of the domain will be performed. -->
+        <!-- <hostname></hostname> -->
+        <!-- TCP port to connect to the XMPP server on. -->
+        <port>5262</port>
+        <!-- Password to use to log into the server. This property is required. -->
+        <password>123456</password>
+        <manager>
+            <!-- Name of the connection manager that uniquely identifies this manager.
+            This property is optional. A random name is generated if none was defined. -->
+            <name></name>
+            <!-- Number of connections to establish to the server. -->
+            <connections>1</connections>
+            <!-- Number of threads for processing incoming server traffic per connection. -->
+            <incoming>
+                <threads>5</threads>
+            </incoming>
+        </manager>
+        <server>
+            <certificate>
+                <!-- Flag that indicates if certificates of the server should be validated. -->
+                <verify>true</verify>
+                <verify>
+                    <!-- Flag that indicates if certificates chain should be validated. -->
+                    <chain>true</chain>
+                    <!-- Verify that the the last certificate in the chain was issued by
+                    a third-party that we trust. -->
+                    <root>true</root>
+                    <!-- For every certificate in the chain, verify that the certificate
+                    is valid at the current time. -->
+                    <validity>true</validity>
+                </verify>
+                <!-- Flag that indicates if self-signed certificates are accepted. -->
+                <accept-selfsigned>false</accept-selfsigned>
+            </certificate>
+        </server>
+        <client>
+            <!-- Milliseconds a client connection has to be idle to be closed.
+            Default is 30 minutes. -->
+            <idle>1800000</idle>
+        </client>
+        <socket>
+            <default>
+                <active>true</active>
+                <!-- Default port to use for plain/TLS client connections. -->
+                <port>5233</port>
+            </default>
+            <ssl>
+                <active>true</active>
+                <!-- Default port to use for client connections using old SSL method. -->
+                <port>5223</port>
+                <storeType>jks</storeType>
+                <!-- <keystore></keystore>
+                <keypass></keypass>
+                <truststore></truststore>
+                <trustpass></trustpass> -->
+            </ssl>
+            <!-- Listen on a specific network interface. -->
+            <!-- <network>
+                <interface></interface>
+            </network> -->
+            <!-- Low level socket settings. Use this section to finetune sockets based on load. -->
+            <!-- Maximum number of outstanding connection requests is set. This can be considered a backlog
+                 of requests waiting on the TCP/IP port for the listener to accept the request. -->
+            <backlog>50</backlog>
+            <buffer>
+                <!-- Hint the size of the underlying buffers used by the platform for incoming network I/O -->
+                <receive>-1</receive>
+                <!-- Hint the size of the underlying buffers used by the platform for outgoing network I/O -->
+                <send>-1</send>
+            </buffer>
+            <!-- Specifies a linger-on-close timeout. This option disables/enables immediate return
+                 from a close() of a TCP Socket.-->
+            <linger>-1</linger>
+            <!-- This option causes packets to be flushed on to the network more frequently. If you are
+                 streaming large amounts of data, there is no buffering and hence no delay.-->
+            <!-- <tcp-nodelay>false</tcp-nodelay> -->
+        </socket>
+        <processor>
+            <!-- Number of processors that will be listening for incoming traffic. The optimal number is related
+                 to the number of CPUs. Each processor will run in its own thread. -->
+            <!-- <count>1</count> -->
+            <!-- Number of threads that will process incoming traffic detected by processors. Note that
+                 threads will be shared among processors. -->
+            <!-- <threads>
+                <standard>16</standard>
+                <ssl>16</ssl>
+            </threads> -->
+        </processor>
+        <!-- Configure http binding. -->
+        <httpbind>
+            <enabled>false</enabled>
+            <port>
+                <plain>7070</plain>
+                <secure>7443</secure>
+            </port>
+            <!-- Script syntax allows BOSH to be used in environments where clients may be restricted to using a particular server -->
+            <scriptSyntax>
+                <enabled>false</enabled>
+            </scriptSyntax>
+            <client>
+                <requests>
+                    <!-- Longest time (in seconds) to wait before responding to any request during the session -->
+                    <!-- <wait></wait> -->
+                    <!-- Maximum allowable seconds over which a client can send empty requests to the server -->
+                    <polling>5</polling>
+                    <!-- Limit number of simultaneous requests the client makes with the 'requests' attribute -->
+                    <max>2</max>
+                </requests>
+                <!-- Seconds a session has to be idle to be closed -->
+                <idle>30</idle>
+            </client>
+        </httpbind>
+    </xmpp>
+    <!-- Configure debug logger. -->
+    <log>
+        <debug>
+            <enabled>true</enabled>
+        </debug>
+    </log>
+</jive>
