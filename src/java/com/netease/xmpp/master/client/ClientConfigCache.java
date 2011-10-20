@@ -3,7 +3,7 @@ package com.netease.xmpp.master.client;
 import java.util.TreeMap;
 
 import com.netease.xmpp.master.common.ConfigCache;
-import com.netease.xmpp.master.common.ServerHashProtos.Server.ServerHash;
+import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 
 public class ClientConfigCache extends ConfigCache {
     private static ClientConfigCache instance = null;
@@ -19,7 +19,7 @@ public class ClientConfigCache extends ConfigCache {
     private String masterServerHost = null;
     private int masterServerPort = 0;
 
-    private TreeMap<Long, ServerHash> serverNodes = new TreeMap<Long, ServerHash>();
+    private TreeMap<Long, ServerInfo> serverNodes = new TreeMap<Long, ServerInfo>();
 
     private ClientConfigCache() {
         // Do nothing
@@ -41,15 +41,15 @@ public class ClientConfigCache extends ConfigCache {
         this.masterServerPort = masterServerPort;
     }
 
-    public TreeMap<Long, ServerHash> getServerNodes() {
+    public TreeMap<Long, ServerInfo> getServerNodes() {
         return serverNodes;
     }
 
-    public void setServerNodes(TreeMap<Long, ServerHash> serverNodes) {
+    public void setServerNodes(TreeMap<Long, ServerInfo> serverNodes) {
         this.serverNodes = serverNodes;
     }
 
-    public ServerHash getServerNodeForKey(Long key) {
+    public ServerInfo getServerNodeForKey(Long key) {
         if (!serverNodes.containsKey(key)) {
             key = serverNodes.ceilingKey(key);
             if (key == null) {

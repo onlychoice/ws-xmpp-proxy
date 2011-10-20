@@ -11,7 +11,7 @@ package org.jivesoftware.multiplexer;
 
 import com.jcraft.jzlib.JZlib;
 import com.jcraft.jzlib.ZInputStream;
-import com.netease.xmpp.master.common.ServerHashProtos.Server.ServerHash;
+import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 
 import org.dom4j.Element;
 import org.dom4j.io.XMPPPacketReader;
@@ -76,7 +76,7 @@ public class ConnectionWorkerThread extends Thread {
      */
     private Element features;
 
-    private ServerHash serverHash;
+    private ServerInfo serverInfo;
 
     static {
         connectionListener = new ConnectionCloseListener() {
@@ -88,12 +88,12 @@ public class ConnectionWorkerThread extends Thread {
     }
 
     public ConnectionWorkerThread(ThreadGroup group, Runnable target, String name, long stackSize,
-            ServerHash serverHash) {
+            ServerInfo serverInfo) {
         super(group, target, name, stackSize);
         ConnectionManager connectionManager = ConnectionManager.getInstance();
         this.serverName = connectionManager.getServerName();
         this.managerName = connectionManager.getName();
-        this.serverHash = serverHash;
+        this.serverInfo = serverInfo;
         // Create connection to the server
         createConnection();
         // Clean up features variable that is no longer needed
@@ -131,13 +131,13 @@ public class ConnectionWorkerThread extends Thread {
         int port = JiveGlobals.getIntProperty("xmpp.port", DEFAULT_MULTIPLEX_PORT);
         Socket socket = new Socket();
         try {
-            Log.debug("CM - Trying to connect to server at " + serverHash.getIp() + ":" + port);
+            Log.debug("CM - Trying to connect to server at " + serverInfo.getIp() + ":" + port);
             // Establish a TCP connection to the Receiving Server
-            socket.connect(new InetSocketAddress(serverHash.getIp(), port), 20000);
-            Log.debug("CM - Plain connection to server at " + serverHash.getIp() + ":" + port
+            socket.connect(new InetSocketAddress(serverInfo.getIp(), port), 20000);
+            Log.debug("CM - Plain connection to server at " + serverInfo.getIp() + ":" + port
                     + " successful");
         } catch (IOException e) {
-            Log.error("Error trying to connect to server at " + serverHash.getIp() + ":" + port, e);
+            Log.error("Error trying to connect to server at " + serverInfo.getIp() + ":" + port, e);
             return false;
         }
 

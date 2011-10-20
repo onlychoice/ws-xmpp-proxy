@@ -11,8 +11,8 @@ import org.jivesoftware.multiplexer.ServerSurrogate;
 
 import com.netease.xmpp.master.client.ClientConfigCache;
 import com.netease.xmpp.master.common.Message;
-import com.netease.xmpp.master.common.ServerHashProtos.Server;
-import com.netease.xmpp.master.common.ServerHashProtos.Server.ServerHash;
+import com.netease.xmpp.master.common.ServerListProtos.Server;
+import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 import com.netease.xmpp.master.event.EventContext;
 import com.netease.xmpp.master.event.EventHandler;
 import com.netease.xmpp.master.event.EventType;
@@ -39,39 +39,39 @@ public class ServerUpdateEventHandler implements EventHandler {
         try {
             server.mergeDelimitedFrom(input);
 
-            List<ServerHash> serverHashList = server.getServerList();
+            List<ServerInfo> serverHashList = server.getServerList();
 
-            TreeMap<Long, ServerHash> oldServerNodes = config.getServerNodes();
-            TreeMap<Long, ServerHash> newServerNodes = new TreeMap<Long, ServerHash>();
-            TreeMap<Long, ServerHash> invalidServerNodes = new TreeMap<Long, ServerHash>();
-            TreeMap<Long, ServerHash> addServerNodes = new TreeMap<Long, ServerHash>();
+            TreeMap<Long, ServerInfo> oldServerNodes = config.getServerNodes();
+            TreeMap<Long, ServerInfo> newServerNodes = new TreeMap<Long, ServerInfo>();
+            TreeMap<Long, ServerInfo> invalidServerNodes = new TreeMap<Long, ServerInfo>();
+            TreeMap<Long, ServerInfo> addServerNodes = new TreeMap<Long, ServerInfo>();
 
             synchronized (oldServerNodes) {
-                for (ServerHash node : serverHashList) {
+                for (ServerInfo node : serverHashList) {
                     newServerNodes.put(node.getHash(), node);
                 }
 
-                for (Map.Entry<Long, ServerHash> entry : oldServerNodes.entrySet()) {
+                for (Map.Entry<Long, ServerInfo> entry : oldServerNodes.entrySet()) {
                     if (!newServerNodes.containsKey(entry.getKey())) {
                         invalidServerNodes.put(entry.getKey(), entry.getValue());
                     } else {
-                        ServerHash s1 = newServerNodes.get(entry.getKey());
-                        ServerHash s2 = entry.getValue();
+                        ServerInfo s1 = newServerNodes.get(entry.getKey());
+                        ServerInfo s2 = entry.getValue();
                         
-                        if(!(s1.getIp().equals(s2.getIp()) && s1.getPort() == s2.getPort())) {
+                        if(!(s1.getIp().equals(s2.getIp()) && s1.getCMPort() == s2.getCMPort())) {
                             invalidServerNodes.put(entry.getKey(), entry.getValue());
                         }
                     }
                 }          
                 
-                for (Map.Entry<Long, ServerHash> entry : newServerNodes.entrySet()) {
+                for (Map.Entry<Long, ServerInfo> entry : newServerNodes.entrySet()) {
                     if (!oldServerNodes.containsKey(entry.getKey())) {
                         addServerNodes.put(entry.getKey(), entry.getValue());
                     }else {
-                        ServerHash s1 = oldServerNodes.get(entry.getKey());
-                        ServerHash s2 = entry.getValue();
+                        ServerInfo s1 = oldServerNodes.get(entry.getKey());
+                        ServerInfo s2 = entry.getValue();
                         
-                        if(!(s1.getIp().equals(s2.getIp()) && s1.getPort() == s2.getPort())) {
+                        if(!(s1.getIp().equals(s2.getIp()) && s1.getCMPort() == s2.getCMPort())) {
                             addServerNodes.put(entry.getKey(), entry.getValue());
                         }
                     }
