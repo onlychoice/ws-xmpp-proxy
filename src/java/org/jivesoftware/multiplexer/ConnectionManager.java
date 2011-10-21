@@ -156,7 +156,7 @@ public class ConnectionManager {
         ProxyGlobal.setIsProxyStartup(false);
 
         TaskExecutor.getInstance().start();
-        
+
         proxyClient = new SyncClient(SyncClient.CLIENT_TYPE_PROXY);
         proxyClient.setConfigPath(JiveGlobals.getHomeDirectory() + File.separator + "conf");
         proxyClient.start();
@@ -166,23 +166,23 @@ public class ConnectionManager {
         locateHome();
         name = JiveGlobals.getXMLProperty("xmpp.manager.name", StringUtils.randomString(5))
                 .toLowerCase();
-        serverName = ClientConfigCache.getInstance().getXmppDomain();
+        // serverName = ClientConfigCache.getInstance().getXmppDomain();
 
         version = new Version(3, 6, 3, Version.ReleaseStatus.Release, -1);
-        if (serverName != null) {
-            setupMode = false;
-        } else {
-            Log.warn(LocaleUtils.getLocalizedString("setup.no_server_name"));
-            System.err.println(LocaleUtils.getLocalizedString("setup.no_server_name"));
-            // Pause 5 seconds so the user knows what's going on. This especially helps users
-            // of the .bat file. Otherwise, an error message is displayed and the server
-            // dissapears right away.
-            try {
-                Thread.sleep(4000);
-            } catch (Exception e) {
-                // Ignore.
-            }
-        }
+        // if (serverName != null) {
+        // setupMode = false;
+        // } else {
+        // Log.warn(LocaleUtils.getLocalizedString("setup.no_server_name"));
+        // System.err.println(LocaleUtils.getLocalizedString("setup.no_server_name"));
+        // // Pause 5 seconds so the user knows what's going on. This especially helps users
+        // // of the .bat file. Otherwise, an error message is displayed and the server
+        // // dissapears right away.
+        // try {
+        // Thread.sleep(4000);
+        // } catch (Exception e) {
+        // // Ignore.
+        // }
+        // }
 
         if (isStandAlone()) {
             Runtime.getRuntime().addShutdownHook(new ShutdownHookThread());
@@ -205,7 +205,7 @@ public class ConnectionManager {
             name = JiveGlobals.getXMLProperty("xmpp.manager.name", StringUtils.randomString(5))
                     .toLowerCase();
             serverName = ClientConfigCache.getInstance().getXmppDomain();
-            
+
             Thread finishSetup = new Thread() {
                 public void run() {
                     try {
@@ -228,6 +228,22 @@ public class ConnectionManager {
 
     public void start() {
         try {
+            serverName = ClientConfigCache.getInstance().getXmppDomain();
+            if (serverName != null) {
+                setupMode = false;
+            } else {
+                Log.warn(LocaleUtils.getLocalizedString("setup.no_server_name"));
+                System.err.println(LocaleUtils.getLocalizedString("setup.no_server_name"));
+                // Pause 5 seconds so the user knows what's going on. This especially helps users
+                // of the .bat file. Otherwise, an error message is displayed and the server
+                // dissapears right away.
+                try {
+                    Thread.sleep(4000);
+                } catch (Exception e) {
+                    // Ignore.
+                }
+            }
+            
             // If the server has already been setup then we can start all the server's modules
             if (!setupMode) {
                 // Start modules
