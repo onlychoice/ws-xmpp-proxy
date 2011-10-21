@@ -27,6 +27,7 @@ import org.jivesoftware.multiplexer.net.SocketSendingTracker;
 import org.jivesoftware.multiplexer.net.XMPPCodecFactory;
 import org.jivesoftware.util.*;
 
+import com.netease.xmpp.master.client.ClientConfigCache;
 import com.netease.xmpp.master.client.SyncClient;
 import com.netease.xmpp.proxy.ProxyGlobal;
 import com.netease.xmpp.proxy.TaskExecutor;
@@ -165,7 +166,7 @@ public class ConnectionManager {
         locateHome();
         name = JiveGlobals.getXMLProperty("xmpp.manager.name", StringUtils.randomString(5))
                 .toLowerCase();
-        serverName = JiveGlobals.getXMLProperty("xmpp.domain");
+        serverName = ClientConfigCache.getInstance().getXmppDomain();
 
         version = new Version(3, 6, 3, Version.ReleaseStatus.Release, -1);
         if (serverName != null) {
@@ -203,8 +204,8 @@ public class ConnectionManager {
             // Set the new server domain assigned during the setup process
             name = JiveGlobals.getXMLProperty("xmpp.manager.name", StringUtils.randomString(5))
                     .toLowerCase();
-            serverName = JiveGlobals.getXMLProperty("xmpp.domain").toLowerCase();
-
+            serverName = ClientConfigCache.getInstance().getXmppDomain();
+            
             Thread finishSetup = new Thread() {
                 public void run() {
                     try {

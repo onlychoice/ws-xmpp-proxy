@@ -49,10 +49,6 @@ public class ConnectionWorkerThread extends Thread {
      * The utf-8 charset for decoding and encoding Jabber packet streams.
      */
     private static String CHARSET = "UTF-8";
-    /**
-     * The default XMPP port for connection multiplex.
-     */
-    public static final int DEFAULT_MULTIPLEX_PORT = 5262;
 
     // Sequence and random number generator used for creating unique IQ ID's.
     private static int sequence = 0;
@@ -128,16 +124,18 @@ public class ConnectionWorkerThread extends Thread {
      */
     private boolean createConnection() {
         String realHostname = null;
-        int port = JiveGlobals.getIntProperty("xmpp.port", DEFAULT_MULTIPLEX_PORT);
         Socket socket = new Socket();
+
+        String ip = serverInfo.getIp();
+        int cmPort = serverInfo.getCMPort();
+
         try {
-            Log.debug("CM - Trying to connect to server at " + serverInfo.getIp() + ":" + port);
+            Log.debug("CM - Trying to connect to server at " + ip + ":" + cmPort);
             // Establish a TCP connection to the Receiving Server
-            socket.connect(new InetSocketAddress(serverInfo.getIp(), port), 20000);
-            Log.debug("CM - Plain connection to server at " + serverInfo.getIp() + ":" + port
-                    + " successful");
+            socket.connect(new InetSocketAddress(ip, cmPort), 20000);
+            Log.debug("CM - Plain connection to server at " + ip + ":" + cmPort + " successful");
         } catch (IOException e) {
-            Log.error("Error trying to connect to server at " + serverInfo.getIp() + ":" + port, e);
+            Log.error("Error trying to connect to server at " + ip + ":" + cmPort, e);
             return false;
         }
 
@@ -216,10 +214,10 @@ public class ConnectionWorkerThread extends Thread {
             Log.debug("CM - Server does not support XMPP version 1.0 or later");
         } catch (SSLHandshakeException e) {
             Log.warn("Handshake error while connecting to server: " + serverName + "(DNS lookup: "
-                    + realHostname + ":" + port + ")", e);
+                    + realHostname + ":" + cmPort + ")", e);
         } catch (Exception e) {
             Log.error("Error while connecting to server: " + serverName + "(DNS lookup: "
-                    + realHostname + ":" + port + ")", e);
+                    + realHostname + ":" + cmPort + ")", e);
         }
         // Close the connection
         if (connection != null) {

@@ -39,6 +39,8 @@ public class ServerUpdateEventHandler implements EventHandler {
         try {
             server.mergeDelimitedFrom(input);
 
+            config.setXmppDomain(server.getDomain());
+            
             List<ServerInfo> serverHashList = server.getServerList();
 
             TreeMap<Long, ServerInfo> oldServerNodes = config.getServerNodes();
