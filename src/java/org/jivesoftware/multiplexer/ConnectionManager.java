@@ -304,7 +304,9 @@ public class ConnectionManager {
     }
 
     private void stopWebSocketListener() {
-        webSocketServer.stop();
+        if(webSocketServer != null) {
+            webSocketServer.stop();
+        }
     }
 
     private void stopModules() {
