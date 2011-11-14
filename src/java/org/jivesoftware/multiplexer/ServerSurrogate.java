@@ -237,9 +237,9 @@ public class ServerSurrogate {
 
                                 deleteSet.add(e.getKey());
 
+                                ServerInfo s = oldServerNodes.get(ceilingKey);
                                 System.out.println("ADD INVALID=" + e.getValue().getStreamID()
-                                        + ", SERVER=" + entry.getValue().getIp() + ":"
-                                        + entry.getValue().getCMPort());
+                                        + ", SERVER=" + s.getIp() + ":" + s.getCMPort());
                                 e.getValue().close();
                             }
                         }
