@@ -44,6 +44,7 @@ public class ServerUpdateEventHandler implements EventHandler {
             List<ServerInfo> serverHashList = server.getServerList();
 
             TreeMap<Long, ServerInfo> oldServerNodes = config.getServerNodes();
+            
             TreeMap<Long, ServerInfo> newServerNodes = new TreeMap<Long, ServerInfo>();
             TreeMap<Long, ServerInfo> invalidServerNodes = new TreeMap<Long, ServerInfo>();
             TreeMap<Long, ServerInfo> addServerNodes = new TreeMap<Long, ServerInfo>();

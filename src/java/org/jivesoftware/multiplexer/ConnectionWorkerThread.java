@@ -369,7 +369,7 @@ public class ConnectionWorkerThread extends Thread {
      */
     private void createSocketReader(XMPPPacketReader reader) {
         ServerPacketReader serverPacketReader = new ServerPacketReader(reader, connection,
-                jidAddress);
+                jidAddress, serverInfo);
         connection.setSocketStatistic(serverPacketReader);
     }
 

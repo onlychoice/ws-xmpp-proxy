@@ -156,16 +156,24 @@ public class ServerSurrogate {
      * Closes existing connections to the server. A new thread pool will be created but no
      * connections will be created. New connections will be created on demand.
      */
-    void closeAll() {
-        shutdown(true);
-
-        // Create new thread pool but this time do not populate it
-        for (int i = 0; i < serverList.size(); i++) {
-            // Create empty thread pool
-            threadPoolList.add(i, createThreadPool(serverList.get(i)));
-        }
-    }
-
+    // void closeAll() {
+    // shutdown(true);
+    //
+    // // Create new thread pool but this time do not populate it
+    // for (int i = 0; i < serverList.size(); i++) {
+    // // Create empty thread pool
+    // threadPoolList.add(i, createThreadPool(serverList.get(i)));
+    // }
+    // }
+    // void closeServer(ServerInfo server) {
+    // TreeMap<Long, ServerInfo> invalidServerNodes = new TreeMap<Long, ServerInfo>();
+    // invalidServerNodes.put(server.getHash(), server);
+    // TreeMap<Long, ServerInfo> addServerNodes = new TreeMap<Long, ServerInfo>();
+    // TreeMap<Long, ServerInfo> oldServerNodes = ClientConfigCache.getInstance().getServerNodes();
+    //        
+    // killInvalidClient(invalidServerNodes, addServerNodes, oldServerNodes);
+    // updateServerConnection(invalidServerNodes, addServerNodes);
+    // }
     /**
      * Closes connections of connected clients and stops forwarding clients traffic to the server.
      * If the server is the one that requested to stop forwarding traffic then stop doing it now.
@@ -203,8 +211,9 @@ public class ServerSurrogate {
                         sessionHashMap.remove(e.getKey());
                         serverHashMap.remove(e.getKey());
 
-                        System.out.println("INVALID=" + e.getValue().getStreamID() + ", SERVER="
-                                + entry.getValue().getIp() + ":" + entry.getValue().getCMPort());
+                        System.out.println("DEL INVALID=" + e.getValue().getStreamID()
+                                + ", SERVER=" + entry.getValue().getIp() + ":"
+                                + entry.getValue().getCMPort());
                     }
                     sessionServerMaps.remove(hash);
                 }
@@ -222,8 +231,16 @@ public class ServerSurrogate {
                         for (Map.Entry<String, Session> e : sessionMap.entrySet()) {
                             long hash = sessionHashMap.get(e.getKey());
 
-                            if (hash <= entry.getKey()) {
+                            if (hash <= entry.getKey() // normal
+                                    // key in the first node
+                                    || (hash > ceilingKey && entry.getKey() < ceilingKey)) {
+
                                 deleteSet.add(e.getKey());
+
+                                System.out.println("ADD INVALID=" + e.getValue().getStreamID()
+                                        + ", SERVER=" + entry.getValue().getIp() + ":"
+                                        + entry.getValue().getCMPort());
+                                e.getValue().close();
                             }
                         }
 
@@ -316,8 +333,8 @@ public class ServerSurrogate {
             serverHashMap.put(streamID, server);
         }
 
-        System.out.println("USER=" + session.getUserName() + ", ID=" + streamID + ", SERVER="
-                + server.getIp() + ":" + server.getCMPort());
+        System.out.println("USER=" + session.getUserName() + ", ID=" + streamID + ", hash=" + hash
+                + ", SERVER=" + server.getIp() + ":" + server.getHash());
 
         threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
     }
@@ -591,7 +608,7 @@ public class ServerSurrogate {
                 int attempts = failedAttempts.incrementAndGet();
                 if (attempts == 2 && serverConnections.size() == 0) {
                     // Server seems to be unavailable so close existing client connections
-                    closeAll();
+                    // closeServer(serverInfo); //closeAll();
                     // Clean up the counter of failed attemps to create new connections
                     failedAttempts.set(0);
                 }

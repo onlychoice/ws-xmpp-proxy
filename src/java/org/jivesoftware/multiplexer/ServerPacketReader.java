@@ -14,6 +14,7 @@ import org.dom4j.io.XMPPPacketReader;
 import org.jivesoftware.multiplexer.net.SocketConnection;
 import org.jivesoftware.util.Log;
 
+import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 import com.netease.xmpp.proxy.TaskExecutor;
 
 import java.io.IOException;
@@ -41,9 +42,9 @@ class ServerPacketReader implements SocketStatistic {
      */
     private ServerPacketHandler packetsHandler;
 
-    public ServerPacketReader(XMPPPacketReader reader, SocketConnection connection, String address) {
+    public ServerPacketReader(XMPPPacketReader reader, SocketConnection connection, String address, ServerInfo server) {
         this.reader = reader;
-        packetsHandler = new ServerPacketHandler(connection, address);
+        packetsHandler = new ServerPacketHandler(connection, address, server);
         init();
     }
 

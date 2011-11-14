@@ -15,6 +15,8 @@ import org.dom4j.Element;
 import org.jivesoftware.multiplexer.net.SocketConnection;
 import org.jivesoftware.util.Log;
 
+import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
+
 /**
  * A ServerPacketHandler is responsible for handling stanzas sent from the server. For each
  * server connection there is going to be an instance of this class.<p>
@@ -40,10 +42,13 @@ class ServerPacketHandler {
      * the connection manager name and the name of the thread. e.g.: connManager1/thread1
      */
     private String jidAddress;
+    
+    private ServerInfo server;
 
-    public ServerPacketHandler(SocketConnection connection, String jidAddress) {
+    public ServerPacketHandler(SocketConnection connection, String jidAddress, ServerInfo server) {
         this.connection = connection;
         this.jidAddress = jidAddress;
+        this.server = server;
     }
 
     /**
@@ -121,7 +126,7 @@ class ServerPacketHandler {
                 // Close connections to the server and client connections. The connection
                 // manager will still be running and accepting client connections. New
                 // connections to the server will be created on demand.
-                connectionManager.getServerSurrogate().closeAll();
+                //connectionManager.getServerSurrogate().closeServer(server);
             } else {
                 // Some stream error was sent from the server
                 Log.warn("Server sent unexpected stream error: " + stanza.asXML());
