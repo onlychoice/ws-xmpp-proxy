@@ -28,9 +28,10 @@ import org.jivesoftware.multiplexer.net.XMPPCodecFactory;
 import org.jivesoftware.util.*;
 
 import com.netease.xmpp.master.client.ClientConfigCache;
+import com.netease.xmpp.master.client.ClientGlobal;
 import com.netease.xmpp.master.client.SyncClient;
-import com.netease.xmpp.proxy.ProxyGlobal;
-import com.netease.xmpp.proxy.TaskExecutor;
+import com.netease.xmpp.master.client.TaskExecutor;
+import com.netease.xmpp.proxy.ProxySyncClient;
 import com.netease.xmpp.websocket.WebSocketServer;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -153,11 +154,11 @@ public class ConnectionManager {
             System.out.println(LocaleUtils.getLocalizedString("startup.error"));
         }
 
-        ProxyGlobal.setIsProxyStartup(false);
+        ClientGlobal.setIsClientStartup(false);
 
         TaskExecutor.getInstance().start();
 
-        proxyClient = new SyncClient(SyncClient.CLIENT_TYPE_PROXY);
+        proxyClient = new ProxySyncClient(SyncClient.CLIENT_TYPE_PROXY);
         proxyClient.setConfigPath(JiveGlobals.getHomeDirectory() + File.separator + "conf");
         proxyClient.start();
     }
@@ -243,7 +244,7 @@ public class ConnectionManager {
                     // Ignore.
                 }
             }
-            
+
             // If the server has already been setup then we can start all the server's modules
             if (!setupMode) {
                 // Start modules
@@ -260,7 +261,7 @@ public class ConnectionManager {
             startDate = new Date();
             stopDate = null;
 
-            ProxyGlobal.setIsProxyStartup(true);
+            ClientGlobal.setIsClientStartup(true);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -304,7 +305,7 @@ public class ConnectionManager {
     }
 
     private void stopWebSocketListener() {
-        if(webSocketServer != null) {
+        if (webSocketServer != null) {
             webSocketServer.stop();
         }
     }

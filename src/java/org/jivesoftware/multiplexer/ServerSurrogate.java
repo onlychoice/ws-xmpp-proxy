@@ -18,6 +18,7 @@ import org.jivesoftware.util.JiveGlobals;
 import org.jivesoftware.util.Log;
 
 import com.netease.xmpp.master.client.ClientConfigCache;
+import com.netease.xmpp.master.client.ClientGlobal;
 import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 
 import java.net.InetAddress;
@@ -110,7 +111,7 @@ public class ServerSurrogate {
 
     void start() {
         HashSet<String> serverSet = new HashSet<String>();
-        TreeMap<Long, ServerInfo> serverNodes = clientConfig.getServerNodes();
+        TreeMap<Long, ServerInfo> serverNodes = ClientGlobal.getServerNodes();
         for (Map.Entry<Long, ServerInfo> entry : serverNodes.entrySet()) {
             ServerInfo sh = entry.getValue();
             if (serverSet.add(getKey(sh))) {
@@ -318,7 +319,7 @@ public class ServerSurrogate {
         Session session = Session.getSession(streamID);
         long hash = clientConfig.getHashAlgorithm().hash(session.getUserName());
 
-        ServerInfo server = clientConfig.getServerNodeForKey(hash);
+        ServerInfo server = ClientGlobal.getServerNodeForKey(hash);
         int index = threadPoolIndexMap.get(getKey(server));
 
         synchronized (sessionServerMaps) {

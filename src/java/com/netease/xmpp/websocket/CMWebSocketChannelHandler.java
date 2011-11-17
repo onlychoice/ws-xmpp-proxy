@@ -16,7 +16,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import com.netease.xmpp.proxy.TaskExecutor;
+import com.netease.xmpp.master.client.TaskExecutor;
 import com.netease.xmpp.websocket.handler.WebSocketConnection;
 import com.netease.xmpp.websocket.handler.WebSocketHandler;
 

@@ -14,8 +14,8 @@ import org.dom4j.io.XMPPPacketReader;
 import org.jivesoftware.multiplexer.net.SocketConnection;
 import org.jivesoftware.util.Log;
 
+import com.netease.xmpp.master.client.TaskExecutor;
 import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
-import com.netease.xmpp.proxy.TaskExecutor;
 
 import java.io.IOException;
 
