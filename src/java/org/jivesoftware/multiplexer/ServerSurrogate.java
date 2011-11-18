@@ -19,6 +19,7 @@ import org.jivesoftware.util.Log;
 
 import com.netease.xmpp.master.client.ClientConfigCache;
 import com.netease.xmpp.master.client.ClientGlobal;
+import com.netease.xmpp.master.client.TaskExecutor;
 import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 
 import java.net.InetAddress;
@@ -207,7 +208,7 @@ public class ServerSurrogate {
                 Map<String, Session> sessionMap = sessionServerMaps.get(hash);
                 if (sessionMap != null) {
                     for (Map.Entry<String, Session> e : sessionMap.entrySet()) {
-                        e.getValue().close();
+                        e.getValue().close(true);
 
                         sessionHashMap.remove(e.getKey());
                         serverHashMap.remove(e.getKey());
@@ -241,7 +242,7 @@ public class ServerSurrogate {
                                 ServerInfo s = oldServerNodes.get(ceilingKey);
                                 System.out.println("ADD INVALID=" + e.getValue().getStreamID()
                                         + ", SERVER=" + s.getIp() + ":" + s.getCMPort());
-                                e.getValue().close();
+                                e.getValue().close(true);
                             }
                         }
 
@@ -316,28 +317,32 @@ public class ServerSurrogate {
      *            the remote address of the connection.
      */
     public void clientSessionCreated(final String streamID, final InetAddress address) {
-        Session session = Session.getSession(streamID);
-        long hash = clientConfig.getHashAlgorithm().hash(session.getUserName());
+        TaskExecutor.getInstance().addServerTask(new Runnable() {
+            @Override
+            public void run() {
+                Session session = Session.getSession(streamID);
+                long hash = clientConfig.getHashAlgorithm().hash(session.getUserName());
 
-        ServerInfo server = ClientGlobal.getServerNodeForKey(hash);
-        int index = threadPoolIndexMap.get(getKey(server));
+                ServerInfo server = ClientGlobal.getServerNodeForKey(hash);
+                int index = threadPoolIndexMap.get(getKey(server));
 
-        synchronized (sessionServerMaps) {
-            Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
-            if (sessionMap == null) {
-                sessionMap = new ConcurrentHashMap<String, Session>();
-                sessionServerMaps.put(server.getHash(), sessionMap);
+                synchronized (sessionServerMaps) {
+                    Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
+                    if (sessionMap == null) {
+                        sessionMap = new ConcurrentHashMap<String, Session>();
+                        sessionServerMaps.put(server.getHash(), sessionMap);
+                    }
+                    sessionMap.put(streamID, Session.getSession(streamID));
+
+                    sessionHashMap.put(streamID, hash);
+                    serverHashMap.put(streamID, server);
+                }
+
+                System.out.println("USER=" + session.getUserName() + ", ID=" + streamID + ", hash="
+                        + hash + ", SERVER=" + server.getIp() + ":" + server.getHash());
+                threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
             }
-            sessionMap.put(streamID, Session.getSession(streamID));
-
-            sessionHashMap.put(streamID, hash);
-            serverHashMap.put(streamID, server);
-        }
-
-        System.out.println("USER=" + session.getUserName() + ", ID=" + streamID + ", hash=" + hash
-                + ", SERVER=" + server.getIp() + ":" + server.getHash());
-
-        threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
+        });
     }
 
     /**
@@ -348,25 +353,30 @@ public class ServerSurrogate {
      *            the stream ID assigned by the connection manager to the session.
      */
     public void clientSessionClosed(final String streamID) {
-        ServerInfo server = serverHashMap.get(streamID);
-        if (server == null) {
-            return;
-        }
-        int index = threadPoolIndexMap.get(getKey(server));
+        TaskExecutor.getInstance().addServerTask(new Runnable() {
+            @Override
+            public void run() {
+                ServerInfo server = serverHashMap.get(streamID);
+                if (server == null) {
+                    return;
+                }
+                int index = threadPoolIndexMap.get(getKey(server));
 
-        synchronized (sessionServerMaps) {
-            Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
-            if (sessionMap != null) {
-                sessionMap.remove(streamID);
+                synchronized (sessionServerMaps) {
+                    Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
+                    if (sessionMap != null) {
+                        sessionMap.remove(streamID);
+                    }
+
+                    serverHashMap.remove(streamID);
+                    sessionHashMap.remove(streamID);
+                }
+
+                System.out.println("CLOSED=" + streamID);
+
+                threadPoolList.get(index).execute(new CloseSessionTask(streamID));
             }
-
-            serverHashMap.remove(streamID);
-            sessionHashMap.remove(streamID);
-        }
-
-        System.out.println("CLOSED=" + streamID);
-
-        threadPoolList.get(index).execute(new CloseSessionTask(streamID));
+        });
     }
 
     /**
@@ -378,15 +388,20 @@ public class ServerSurrogate {
      *            the stream ID assigned by the connection manager to the no longer available
      *            session.
      */
-    public void deliveryFailed(Element stanza, String streamID) {
-        ServerInfo server = serverHashMap.get(streamID);
-        if (server == null) {
-            return;
-        }
+    public void deliveryFailed(final Element stanza, final String streamID) {
+        TaskExecutor.getInstance().addServerTask(new Runnable() {
+            @Override
+            public void run() {
+                ServerInfo server = serverHashMap.get(streamID);
+                if (server == null) {
+                    return;
+                }
 
-        int index = threadPoolIndexMap.get(getKey(server));
+                int index = threadPoolIndexMap.get(getKey(server));
 
-        threadPoolList.get(index).execute(new DeliveryFailedTask(streamID, stanza));
+                threadPoolList.get(index).execute(new DeliveryFailedTask(streamID, stanza));
+            }
+        });
     }
 
     /**
@@ -398,15 +413,20 @@ public class ServerSurrogate {
      * @param streamID
      *            the stream ID assigned by the connection manager to the session.
      */
-    public void send(String stanza, String streamID) {
-        ServerInfo server = serverHashMap.get(streamID);
-        if (server == null) {
-            return;
-        }
+    public void send(final String stanza, final String streamID) {
+        TaskExecutor.getInstance().addServerTask(new Runnable() {
+            @Override
+            public void run() {
+                ServerInfo server = serverHashMap.get(streamID);
+                if (server == null) {
+                    return;
+                }
 
-        int index = threadPoolIndexMap.get(getKey(server));
+                int index = threadPoolIndexMap.get(getKey(server));
 
-        threadPoolList.get(index).execute(new RouteTask(streamID, stanza));
+                threadPoolList.get(index).execute(new RouteTask(streamID, stanza));
+            }
+        });
     }
 
     /**
