@@ -54,7 +54,7 @@ public class ProxyServerUpdateEventHandler extends ServerUpdateEventHandler {
                 }
             }
 
-            if (addServerNodes.size() == 0 || invalidServerNodes.size() == 0) {
+            if (addServerNodes.size() == 0 && invalidServerNodes.size() == 0) {
                 return;
             }
 
