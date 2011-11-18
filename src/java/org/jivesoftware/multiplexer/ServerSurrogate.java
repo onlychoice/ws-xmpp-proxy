@@ -52,7 +52,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Gaston Dombiak
  */
 public class ServerSurrogate {
-
     /**
      * TLS policy to use for clients.
      */
@@ -372,7 +371,7 @@ public class ServerSurrogate {
                     sessionHashMap.remove(streamID);
                 }
 
-                System.out.println("CLOSED=" + streamID);
+                System.out.println("CLOSED=" + streamID + ", Server: " + server.getIp());
 
                 threadPoolList.get(index).execute(new CloseSessionTask(streamID));
             }

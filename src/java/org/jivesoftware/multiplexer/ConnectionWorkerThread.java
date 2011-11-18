@@ -436,6 +436,8 @@ public class ConnectionWorkerThread extends Thread {
 
     public void run() {
         try {
+            new RuntimeException("here").printStackTrace();
+            
             super.run();
         } catch (IllegalStateException e) {
             // Do not print this exception that was thrown to stop this thread when
