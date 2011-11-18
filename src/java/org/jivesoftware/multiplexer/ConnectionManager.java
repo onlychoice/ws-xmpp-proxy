@@ -154,7 +154,7 @@ public class ConnectionManager {
             System.out.println(LocaleUtils.getLocalizedString("startup.error"));
         }
 
-        ClientGlobal.setIsClientStartup(false);
+        ClientGlobal.setIsClientStarted(false);
 
         TaskExecutor.getInstance().start();
 
@@ -261,7 +261,7 @@ public class ConnectionManager {
             startDate = new Date();
             stopDate = null;
 
-            ClientGlobal.setIsClientStartup(true);
+            ClientGlobal.setIsClientStarted(true);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -17,7 +17,7 @@ public class ProxyUpdateCompletedEventHandler extends UpdateCompletedEventHandle
     
     private void checkProxyStatus() {
         if (!ClientGlobal.getIsUpdating()) {
-            if (!ClientGlobal.getIsClientStartup()) {
+            if (!ClientGlobal.getIsClientStarted()) {
                 ConnectionManager.getInstance().start();
             }
             TaskExecutor.getInstance().resume();

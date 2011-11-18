@@ -1,7 +1,6 @@
 package com.netease.xmpp.proxy;
 
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 import org.jivesoftware.multiplexer.ConnectionManager;
@@ -10,6 +9,8 @@ import org.jivesoftware.multiplexer.ServerSurrogate;
 import com.netease.xmpp.master.client.ClientConfigCache;
 import com.netease.xmpp.master.client.ClientGlobal;
 import com.netease.xmpp.master.common.Message;
+import com.netease.xmpp.master.common.MessageFlag;
+import com.netease.xmpp.master.common.ServerListProtos.Server;
 import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
 import com.netease.xmpp.master.event.client.ServerUpdateEventHandler;
 
@@ -18,47 +19,48 @@ public class ProxyServerUpdateEventHandler extends ServerUpdateEventHandler {
         super(config);
     }
 
-    public void serverInfoUpdated(Message message, List<ServerInfo> serverHashList) {
+    public void serverInfoUpdated(Message message, Server server) {
+        ClientGlobal.setServerVersion(message.getVersion());
+
+        List<ServerInfo> serverHashList = server.getServerList();
         TreeMap<Long, ServerInfo> oldServerNodes = ClientGlobal.getServerNodes();
 
         TreeMap<Long, ServerInfo> newServerNodes = new TreeMap<Long, ServerInfo>();
         TreeMap<Long, ServerInfo> invalidServerNodes = new TreeMap<Long, ServerInfo>();
         TreeMap<Long, ServerInfo> addServerNodes = new TreeMap<Long, ServerInfo>();
 
+        int serverFlag = server.getServerFlag();
+
         synchronized (oldServerNodes) {
-            for (ServerInfo node : serverHashList) {
-                newServerNodes.put(node.getHash(), node);
-            }
+            if (serverFlag == MessageFlag.FLAG_SERVER_ADD) {
+                // Add server
+                for (ServerInfo node : serverHashList) {
+                    if (!oldServerNodes.containsKey(node.getHash())) {
+                        addServerNodes.put(node.getHash(), node);
+                        newServerNodes.put(node.getHash(), node);
+                    }
+                }
 
-            for (Map.Entry<Long, ServerInfo> entry : oldServerNodes.entrySet()) {
-                if (!newServerNodes.containsKey(entry.getKey())) {
-                    invalidServerNodes.put(entry.getKey(), entry.getValue());
-                } else {
-                    ServerInfo s1 = newServerNodes.get(entry.getKey());
-                    ServerInfo s2 = entry.getValue();
+                newServerNodes.putAll(oldServerNodes);
+            } else if (serverFlag == MessageFlag.FLAG_SERVER_DEL) {
+                // Del server
+                newServerNodes.putAll(oldServerNodes);
 
-                    if (!(s1.getIp().equals(s2.getIp()) && s1.getCMPort() == s2.getCMPort())) {
-                        invalidServerNodes.put(entry.getKey(), entry.getValue());
+                for (ServerInfo node : serverHashList) {
+                    if (oldServerNodes.containsKey(node.getHash())) {
+                        invalidServerNodes.put(node.getHash(), node);
+                        newServerNodes.remove(node.getHash());
                     }
                 }
             }
 
-            for (Map.Entry<Long, ServerInfo> entry : newServerNodes.entrySet()) {
-                if (!oldServerNodes.containsKey(entry.getKey())) {
-                    addServerNodes.put(entry.getKey(), entry.getValue());
-                } else {
-                    ServerInfo s1 = oldServerNodes.get(entry.getKey());
-                    ServerInfo s2 = entry.getValue();
-
-                    if (!(s1.getIp().equals(s2.getIp()) && s1.getCMPort() == s2.getCMPort())) {
-                        addServerNodes.put(entry.getKey(), entry.getValue());
-                    }
-                }
+            if (addServerNodes.size() == 0 || invalidServerNodes.size() == 0) {
+                return;
             }
 
             ClientGlobal.setServerNodes(newServerNodes);
 
-            if (ClientGlobal.getIsClientStartup()) {
+            if (ClientGlobal.getIsClientStarted()) {
                 ServerSurrogate serverSurrogate = ConnectionManager.getInstance()
                         .getServerSurrogate();
                 serverSurrogate.killInvalidClient(invalidServerNodes, addServerNodes,
