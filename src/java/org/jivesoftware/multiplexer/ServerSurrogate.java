@@ -207,7 +207,7 @@ public class ServerSurrogate {
                 Map<String, Session> sessionMap = sessionServerMaps.get(hash);
                 if (sessionMap != null) {
                     for (Map.Entry<String, Session> e : sessionMap.entrySet()) {
-                        e.getValue().close(true);
+                        e.getValue().close();
 
                         sessionHashMap.remove(e.getKey());
                         serverHashMap.remove(e.getKey());
@@ -241,7 +241,7 @@ public class ServerSurrogate {
                                 ServerInfo s = oldServerNodes.get(ceilingKey);
                                 System.out.println("ADD INVALID=" + e.getValue().getStreamID()
                                         + ", SERVER=" + s.getIp() + ":" + s.getCMPort());
-                                e.getValue().close(true);
+                                e.getValue().close();
                             }
                         }
 
@@ -273,8 +273,9 @@ public class ServerSurrogate {
             String key = getKey(sh);
             Integer index = threadPoolIndexMap.get(key);
             if (index != null) {
-                serverList.remove(index);
-                threadPoolList.remove(index);
+                System.out.println("Remove server: " + sh.getIp());
+                serverList.remove(index.intValue());
+                threadPoolList.remove(index.intValue());
                 threadPoolIndexMap.remove(key);
                 for (Map.Entry<String, Integer> e : threadPoolIndexMap.entrySet()) {
                     if (e.getValue() > index) {
@@ -295,6 +296,8 @@ public class ServerSurrogate {
         }
 
         for (ServerInfo sh : addServerList) {
+            System.out.println("Add server: " + sh.getIp());
+
             serverList.add(sh);
 
             ThreadPoolExecutor t = createThreadPool(sh);
@@ -364,14 +367,14 @@ public class ServerSurrogate {
                 synchronized (sessionServerMaps) {
                     Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
                     if (sessionMap != null) {
+                        System.out.println("CLOSED=" + sessionMap.get(streamID).getUserName()
+                                + ", Server: " + server.getIp());
                         sessionMap.remove(streamID);
                     }
 
                     serverHashMap.remove(streamID);
                     sessionHashMap.remove(streamID);
                 }
-
-                System.out.println("CLOSED=" + streamID + ", Server: " + server.getIp());
 
                 threadPoolList.get(index).execute(new CloseSessionTask(streamID));
             }
@@ -396,8 +399,13 @@ public class ServerSurrogate {
                     return;
                 }
 
-                int index = threadPoolIndexMap.get(getKey(server));
+                Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
+                if (sessionMap != null) {
+                    System.out.println("FAILED=" + sessionMap.get(streamID).getUserName()
+                            + ", Server: " + server.getIp());
+                }
 
+                int index = threadPoolIndexMap.get(getKey(server));
                 threadPoolList.get(index).execute(new DeliveryFailedTask(streamID, stanza));
             }
         });
@@ -422,7 +430,6 @@ public class ServerSurrogate {
                 }
 
                 int index = threadPoolIndexMap.get(getKey(server));
-
                 threadPoolList.get(index).execute(new RouteTask(streamID, stanza));
             }
         });
