@@ -622,8 +622,8 @@ public class ServerSurrogate {
 
         public Thread newThread(Runnable r) {
             // Create new worker thread that will include a connection to the server
-            ConnectionWorkerThread t = new ConnectionWorkerThread(group, r, "Connection Worker - "
-                    + threadNumber.getAndIncrement(), 0, serverInfo);
+            ConnectionWorkerThread t = new ConnectionWorkerThread(group, r, "Connection Worker@"
+                    + serverInfo.getIp() + " - " + threadNumber.getAndIncrement(), 0, serverInfo);
             if (t.isDaemon())
                 t.setDaemon(false);
             if (t.getPriority() != Thread.NORM_PRIORITY)
