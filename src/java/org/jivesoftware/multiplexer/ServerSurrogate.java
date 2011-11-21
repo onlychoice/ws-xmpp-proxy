@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -208,15 +207,12 @@ public class ServerSurrogate {
                 if (sessionMap != null) {
                     for (Map.Entry<String, Session> e : sessionMap.entrySet()) {
                         e.getValue().close();
-
-                        sessionHashMap.remove(e.getKey());
-                        serverHashMap.remove(e.getKey());
+                        // Delete the session info in #clientSessionClosed
 
                         System.out.println("DEL INVALID=" + e.getValue().getStreamID()
                                 + ", SERVER=" + entry.getValue().getIp() + ":"
                                 + entry.getValue().getCMPort());
                     }
-                    sessionServerMaps.remove(hash);
                 }
             }
         }
@@ -228,7 +224,7 @@ public class ServerSurrogate {
                 synchronized (sessionServerMaps) {
                     Map<String, Session> sessionMap = sessionServerMaps.get(ceilingKey);
                     if (sessionMap != null) {
-                        Set<String> deleteSet = new HashSet<String>();
+                        // Set<String> deleteSet = new HashSet<String>();
                         for (Map.Entry<String, Session> e : sessionMap.entrySet()) {
                             long hash = sessionHashMap.get(e.getKey());
 
@@ -236,20 +232,13 @@ public class ServerSurrogate {
                                     // key in the first node
                                     || (hash > ceilingKey && entry.getKey() < ceilingKey)) {
 
-                                deleteSet.add(e.getKey());
+                                e.getValue().close();
+                                // Delete the session info in #clientSessionClosed
 
                                 ServerInfo s = oldServerNodes.get(ceilingKey);
                                 System.out.println("ADD INVALID=" + e.getValue().getStreamID()
                                         + ", SERVER=" + s.getIp() + ":" + s.getCMPort());
-                                e.getValue().close();
                             }
-                        }
-
-                        for (String id : deleteSet) {
-                            sessionMap.remove(id);
-
-                            sessionHashMap.remove(id);
-                            serverHashMap.remove(id);
                         }
                     }
                 }
@@ -326,23 +315,26 @@ public class ServerSurrogate {
                 long hash = clientConfig.getHashAlgorithm().hash(session.getUserName());
 
                 ServerInfo server = ClientGlobal.getServerNodeForKey(hash);
-                int index = threadPoolIndexMap.get(getKey(server));
+                Integer index = threadPoolIndexMap.get(getKey(server));
 
-                synchronized (sessionServerMaps) {
-                    Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
-                    if (sessionMap == null) {
-                        sessionMap = new ConcurrentHashMap<String, Session>();
-                        sessionServerMaps.put(server.getHash(), sessionMap);
+                if (index != null) {
+                    synchronized (sessionServerMaps) {
+                        Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
+                        if (sessionMap == null) {
+                            sessionMap = new ConcurrentHashMap<String, Session>();
+                            sessionServerMaps.put(server.getHash(), sessionMap);
+                        }
+                        sessionMap.put(streamID, Session.getSession(streamID));
+
+                        sessionHashMap.put(streamID, hash);
+                        serverHashMap.put(streamID, server);
                     }
-                    sessionMap.put(streamID, Session.getSession(streamID));
 
-                    sessionHashMap.put(streamID, hash);
-                    serverHashMap.put(streamID, server);
+                    System.out.println("USER=" + session.getUserName() + ", ID=" + streamID
+                            + ", hash=" + hash + ", SERVER=" + server.getIp() + ":"
+                            + server.getHash());
+                    threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
                 }
-
-                System.out.println("USER=" + session.getUserName() + ", ID=" + streamID + ", hash="
-                        + hash + ", SERVER=" + server.getIp() + ":" + server.getHash());
-                threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
             }
         });
     }
@@ -362,21 +354,23 @@ public class ServerSurrogate {
                 if (server == null) {
                     return;
                 }
-                int index = threadPoolIndexMap.get(getKey(server));
+                Integer index = threadPoolIndexMap.get(getKey(server));
 
-                synchronized (sessionServerMaps) {
-                    Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
-                    if (sessionMap != null) {
-                        System.out.println("CLOSED=" + sessionMap.get(streamID).getUserName()
-                                + ", Server: " + server.getIp());
-                        sessionMap.remove(streamID);
+                if (index != null) {
+                    synchronized (sessionServerMaps) {
+                        Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
+                        if (sessionMap != null) {
+                            System.out.println("CLOSED=" + sessionMap.get(streamID).getUserName()
+                                    + ", Server: " + server.getIp());
+                            sessionMap.remove(streamID);
+                        }
+
+                        serverHashMap.remove(streamID);
+                        sessionHashMap.remove(streamID);
                     }
 
-                    serverHashMap.remove(streamID);
-                    sessionHashMap.remove(streamID);
+                    threadPoolList.get(index).execute(new CloseSessionTask(streamID));
                 }
-
-                threadPoolList.get(index).execute(new CloseSessionTask(streamID));
             }
         });
     }
@@ -405,8 +399,10 @@ public class ServerSurrogate {
                             + ", Server: " + server.getIp());
                 }
 
-                int index = threadPoolIndexMap.get(getKey(server));
-                threadPoolList.get(index).execute(new DeliveryFailedTask(streamID, stanza));
+                Integer index = threadPoolIndexMap.get(getKey(server));
+                if (index != null) {
+                    threadPoolList.get(index).execute(new DeliveryFailedTask(streamID, stanza));
+                }
             }
         });
     }
@@ -429,8 +425,10 @@ public class ServerSurrogate {
                     return;
                 }
 
-                int index = threadPoolIndexMap.get(getKey(server));
-                threadPoolList.get(index).execute(new RouteTask(streamID, stanza));
+                Integer index = threadPoolIndexMap.get(getKey(server));
+                if (index != null) {
+                    threadPoolList.get(index).execute(new RouteTask(streamID, stanza));
+                }
             }
         });
     }
