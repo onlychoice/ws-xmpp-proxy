@@ -1,12 +1,10 @@
 /**
- * $RCSfile$
- * $Revision: $
- * $Date: $
- *
+ * $RCSfile$ $Revision: $ $Date: $
+ * 
  * Copyright (C) 2006 Jive Software. All rights reserved.
- *
- * This software is published under the terms of the GNU Public License (GPL),
- * a copy of which is included in this distribution.
+ * 
+ * This software is published under the terms of the GNU Public License (GPL), a copy of which is
+ * included in this distribution.
  */
 
 package org.jivesoftware.multiplexer.net;
@@ -26,7 +24,7 @@ import java.io.StringReader;
 /**
  * A StanzaHandler is the main responsible for handling incoming stanzas. Some stanzas like startTLS
  * are totally managed by this class. Other stanzas are just forwarded to the server.
- *
+ * 
  * @author Gaston Dombiak
  */
 abstract class StanzaHandler {
@@ -44,7 +42,8 @@ abstract class StanzaHandler {
     // DANIELE: Indicate if a session is already created
     private boolean sessionCreated = false;
 
-    // Flag that indicates that the client requested to use TLS and TLS has been negotiated. Once the
+    // Flag that indicates that the client requested to use TLS and TLS has been negotiated. Once
+    // the
     // client sent a new initial stream header the value will return to false.
     private boolean startedTLS = false;
     // Flag that indicates that the client requested to be authenticated. Once the
@@ -72,21 +71,25 @@ abstract class StanzaHandler {
         try {
             factory = XmlPullParserFactory.newInstance(MXParser.class.getName(), null);
             factory.setNamespaceAware(true);
-        }
-        catch (XmlPullParserException e) {
+        } catch (XmlPullParserException e) {
             Log.error("Error creating a parser factory", e);
         }
     }
 
     /**
      * Creates a dedicated reader for a socket.
-     *
-     * @param router the router for sending packets that were read.
-     * @param serverName the name of the server this socket is working for.
-     * @param connection the connection being read.
-     * @throws org.xmlpull.v1.XmlPullParserException of an error while parsing occurs.
+     * 
+     * @param router
+     *            the router for sending packets that were read.
+     * @param serverName
+     *            the name of the server this socket is working for.
+     * @param connection
+     *            the connection being read.
+     * @throws org.xmlpull.v1.XmlPullParserException
+     *             of an error while parsing occurs.
      */
-    public StanzaHandler(PacketRouter router, String serverName, Connection connection) throws XmlPullParserException {
+    public StanzaHandler(PacketRouter router, String serverName, Connection connection)
+            throws XmlPullParserException {
         this.serverName = serverName;
         this.router = router;
         this.connection = connection;
@@ -94,7 +97,8 @@ abstract class StanzaHandler {
 
     public void process(String stanza, XmlPullParser parser) throws Exception {
 
-        boolean initialStream = stanza.startsWith("<stream:stream") || stanza.startsWith("<flash:stream");
+        boolean initialStream = stanza.startsWith("<stream:stream")
+                || stanza.startsWith("<flash:stream");
         if (!sessionCreated || initialStream) {
             if (!initialStream) {
                 // Ignore <?xml version="1.0"?>
@@ -147,7 +151,7 @@ abstract class StanzaHandler {
         if ("starttls".equals(tag)) {
             // Negotiate TLS
             if (negotiateTLS()) {
-                startedTLS= true;
+                startedTLS = true;
             } else {
                 connection.close();
                 session = null;
@@ -165,6 +169,10 @@ abstract class StanzaHandler {
                 waitingCompressionACK = true;
             }
         } else {
+            if ("message".equals(tag)) {
+                // message from client, response a simple message immediately
+                connection.deliverRawText(" ");
+            }
             route(stanza);
         }
     }
@@ -186,15 +194,12 @@ abstract class StanzaHandler {
                     StringBuilder reply = new StringBuilder();
                     String stanzaType;
                     if (parser.getName().equals("message")) {
-                        stanzaType ="message";
-                    }
-                    else if (parser.getName().equals("iq")) {
-                        stanzaType ="iq";
-                    }
-                    else if (parser.getName().equals("presence")) {
-                        stanzaType ="presence";
-                    }
-                    else {
+                        stanzaType = "message";
+                    } else if (parser.getName().equals("iq")) {
+                        stanzaType = "iq";
+                    } else if (parser.getName().equals("presence")) {
+                        stanzaType = "presence";
+                    } else {
                         return false;
                     }
                     reply.append("<").append(stanzaType).append(" type='error'");
@@ -203,7 +208,8 @@ abstract class StanzaHandler {
                         reply.append(" id='").append(id).append("'");
                     }
                     reply.append(">");
-                    reply.append("<error type='modify'><jid-malformed xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>");
+                    reply
+                            .append("<error type='modify'><jid-malformed xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>");
                     reply.append("</error>");
                     reply.append("</").append(stanzaType).append(">");
 
@@ -226,8 +232,7 @@ abstract class StanzaHandler {
 
     private void route(String stanza) {
         // Ensure that connection was secured if TLS was required
-        if (connection.getTlsPolicy() == Connection.TLSPolicy.required &&
-                !connection.isSecure()) {
+        if (connection.getTlsPolicy() == Connection.TLSPolicy.required && !connection.isSecure()) {
             closeNeverSecuredConnection();
             return;
         }
@@ -235,10 +240,10 @@ abstract class StanzaHandler {
     }
 
     /**
-     * Tries to secure the connection using TLS. If the connection is secured then reset
-     * the parser to use the new secured reader. But if the connection failed to be secured
-     * then send a <failure> stanza and close the connection.
-     *
+     * Tries to secure the connection using TLS. If the connection is secured then reset the parser
+     * to use the new secured reader. But if the connection failed to be secured then send a
+     * <failure> stanza and close the connection.
+     * 
      * @return true if the connection was secured.
      */
     private boolean negotiateTLS() {
@@ -250,15 +255,14 @@ abstract class StanzaHandler {
             // Close the underlying connection
             connection.close();
             // Log a warning so that admins can track this case from the server side
-            Log.warn("TLS requested by initiator when TLS was never offered by server. " +
-                    "Closing connection : " + connection);
+            Log.warn("TLS requested by initiator when TLS was never offered by server. "
+                    + "Closing connection : " + connection);
             return false;
         }
         // Client requested to secure the connection using TLS. Negotiate TLS.
         try {
             connection.startTLS(false, null);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.error("Error while negotiating TLS", e);
             connection.deliverRawText("<failure xmlns=\"urn:ietf:params:xml:ns:xmpp-tls\">");
             connection.close();
@@ -268,10 +272,10 @@ abstract class StanzaHandler {
     }
 
     /**
-     * TLS negotiation was successful so open a new stream and offer the new stream features.
-     * The new stream features will include available SASL mechanisms and specific features
-     * depending on the session type such as auth for Non-SASL authentication and register
-     * for in-band registration.
+     * TLS negotiation was successful so open a new stream and offer the new stream features. The
+     * new stream features will include available SASL mechanisms and specific features depending on
+     * the session type such as auth for Non-SASL authentication and register for in-band
+     * registration.
      */
     private void tlsNegotiated() {
         // Offer stream features including SASL Mechanisms
@@ -290,10 +294,10 @@ abstract class StanzaHandler {
     }
 
     /**
-     * After SASL authentication was successful we should open a new stream and offer
-     * new stream features such as resource binding and session establishment. Notice that
-     * resource binding and session establishment should only be offered to clients (i.e. not
-     * to servers or external components)
+     * After SASL authentication was successful we should open a new stream and offer new stream
+     * features such as resource binding and session establishment. Notice that resource binding and
+     * session establishment should only be offered to clients (i.e. not to servers or external
+     * components)
      */
     private void saslSuccessful() {
         StringBuilder sb = new StringBuilder(420);
@@ -311,12 +315,13 @@ abstract class StanzaHandler {
     }
 
     /**
-     * Start using compression but first check if the connection can and should use compression.
-     * The connection will be closed if the requested method is not supported, if the connection
-     * is already using compression or if client requested to use compression but this feature
-     * is disabled.
-     *
-     * @param stanza the XML stanza sent by the client requesting compression. Compression method is
+     * Start using compression but first check if the connection can and should use compression. The
+     * connection will be closed if the requested method is not supported, if the connection is
+     * already using compression or if client requested to use compression but this feature is
+     * disabled.
+     * 
+     * @param stanza
+     *            the XML stanza sent by the client requesting compression. Compression method is
      *            included.
      * @return true if it was possible to use compression.
      */
@@ -326,14 +331,14 @@ abstract class StanzaHandler {
             // Client requested compression but this feature is disabled
             error = "<failure xmlns='http://jabber.org/protocol/compress'><setup-failed/></failure>";
             // Log a warning so that admins can track this case from the server side
-            Log.warn("Client requested compression while compression is disabled. Closing " +
-                    "connection : " + connection);
+            Log.warn("Client requested compression while compression is disabled. Closing "
+                    + "connection : " + connection);
         } else if (connection.isCompressed()) {
             // Client requested compression but connection is already compressed
             error = "<failure xmlns='http://jabber.org/protocol/compress'><setup-failed/></failure>";
             // Log a warning so that admins can track this case from the server side
-            Log.warn("Client requested compression and connection is already compressed. Closing " +
-                    "connection : " + connection);
+            Log.warn("Client requested compression and connection is already compressed. Closing "
+                    + "connection : " + connection);
         } else {
             XMPPPacketReader xmppReader = new XMPPPacketReader();
             xmppReader.setXPPFactory(factory);
@@ -351,8 +356,8 @@ abstract class StanzaHandler {
             if (!"zlib".equals(method)) {
                 error = "<failure xmlns='http://jabber.org/protocol/compress'><unsupported-method/></failure>";
                 // Log a warning so that admins can track this case from the server side
-                Log.warn("Requested compression method is not supported: " + method +
-                        ". Closing connection : " + connection);
+                Log.warn("Requested compression method is not supported: " + method
+                        + ". Closing connection : " + connection);
             }
         }
 
@@ -371,10 +376,9 @@ abstract class StanzaHandler {
     }
 
     /**
-     * After compression was successful we should open a new stream and offer
-     * new stream features such as resource binding and session establishment. Notice that
-     * resource binding and session establishment should only be offered to clients (i.e. not
-     * to servers or external components)
+     * After compression was successful we should open a new stream and offer new stream features
+     * such as resource binding and session establishment. Notice that resource binding and session
+     * establishment should only be offered to clients (i.e. not to servers or external components)
      */
     private void compressionSuccessful() {
         StringBuilder sb = new StringBuilder(340);
@@ -432,18 +436,18 @@ abstract class StanzaHandler {
         // Close the underlying connection
         connection.close();
         // Log a warning so that admins can track this case from the server side
-        Log.warn("TLS was required by the server and connection was never secured. " +
-                "Closing connection : " + connection);
+        Log.warn("TLS was required by the server and connection was never secured. "
+                + "Closing connection : " + connection);
     }
 
     /**
-     * Uses the XPP to grab the opening stream tag and create an active session
-     * object. The session to create will depend on the sent namespace. In all
-     * cases, the method obtains the opening stream tag, checks for errors, and
-     * either creates a session or returns an error and kills the connection.
-     * If the connection remains open, the XPP will be set to be ready for the
-     * first packet. A call to next() should result in an START_TAG state with
-     * the first packet in the stream.
+     * Uses the XPP to grab the opening stream tag and create an active session object. The session
+     * to create will depend on the sent namespace. In all cases, the method obtains the opening
+     * stream tag, checks for errors, and either creates a session or returns an error and kills the
+     * connection. If the connection remains open, the XPP will be set to be ready for the first
+     * packet. A call to next() should result in an START_TAG state with the first packet in the
+     * stream.
+     * 
      * @param xpp
      * @throws java.io.IOException
      * @throws org.xmlpull.v1.XmlPullParserException
@@ -477,8 +481,8 @@ abstract class StanzaHandler {
             // Close the underlying connection
             connection.close();
             // Log a warning so that admins can track this cases from the server side
-            Log.warn("Closing session due to incorrect hostname in stream header. Host: " + host +
-                    ". Connection: " + connection);
+            Log.warn("Closing session due to incorrect hostname in stream header. Host: " + host
+                    + ". Connection: " + connection);
         }
 
         // Create the correct session based on the sent namespace. At this point the server
@@ -505,8 +509,8 @@ abstract class StanzaHandler {
             // Close the underlying connection
             connection.close();
             // Log a warning so that admins can track this cases from the server side
-            Log.warn("Closing session due to bad_namespace_prefix in stream header. Prefix: " +
-                    xpp.getNamespace(null) + ". Connection: " + connection);
+            Log.warn("Closing session due to bad_namespace_prefix in stream header. Prefix: "
+                    + xpp.getNamespace(null) + ". Connection: " + connection);
         }
     }
 
@@ -525,16 +529,16 @@ abstract class StanzaHandler {
 
     /**
      * Returns the stream namespace. (E.g. jabber:client, jabber:server, etc.).
-     *
+     * 
      * @return the stream namespace.
      */
     abstract String getNamespace();
 
     /**
-     * Returns true if the value of the 'to' attribute in the stream header should be
-     * validated. If the value of the 'to' attribute is not valid then a host-unknown error
-     * will be returned and the underlying connection will be closed.
-     *
+     * Returns true if the value of the 'to' attribute in the stream header should be validated. If
+     * the value of the 'to' attribute is not valid then a host-unknown error will be returned and
+     * the underlying connection will be closed.
+     * 
      * @return true if the value of the 'to' attribute in the initial stream header should be
      *         validated.
      */
@@ -542,14 +546,15 @@ abstract class StanzaHandler {
 
     /**
      * Creates the appropriate {@link Session} subclass based on the specified namespace.
-     *
-     * @param namespace the namespace sent in the stream element. eg. jabber:client.
+     * 
+     * @param namespace
+     *            the namespace sent in the stream element. eg. jabber:client.
      * @param serverName
      * @param xpp
      * @param connection
      * @return the created session or null.
      * @throws org.xmlpull.v1.XmlPullParserException
      */
-    abstract boolean createSession(String namespace, String serverName, XmlPullParser xpp, Connection connection)
-            throws XmlPullParserException;
+    abstract boolean createSession(String namespace, String serverName, XmlPullParser xpp,
+            Connection connection) throws XmlPullParserException;
 }
