@@ -80,17 +80,17 @@ public class CMWebSocketChannelHandler implements WebSocketHandler {
     public void onMessage(WebSocketConnection connection, String msg) throws Throwable {
         ClientStanzaHandler handler = (ClientStanzaHandler) connection.getData(HANDLER);
 
-        // Get the parser to use to process stanza. For optimization there is going
-        // to be a parser for each running thread. Each Filter will be executed
-        // by the Executor placed as the first Filter. So we can have a parser associated
-        // to each Thread
-        int hashCode = Thread.currentThread().hashCode();
-        XmlPullParser parser = parsers.get(hashCode);
-        if (parser == null) {
-            parser = factory.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-            parsers.put(hashCode, parser);
-        }
+        // int hashCode = Thread.currentThread().hashCode();
+        // XmlPullParser parser = parsers.get(hashCode);
+        // if (parser == null) {
+        // parser = factory.newPullParser();
+        // parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
+        // parsers.put(hashCode, parser);
+        // }
+
+        // parser is not thread safe: new parser for new every msg
+        XmlPullParser parser = factory.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
 
         XMLLightweightParser lightwightParser = (XMLLightweightParser) connection
                 .getData(XML_PARSER);
