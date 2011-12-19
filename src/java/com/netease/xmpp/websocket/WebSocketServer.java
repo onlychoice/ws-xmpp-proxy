@@ -4,6 +4,7 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.net.ssl.KeyManager;
@@ -37,6 +38,7 @@ public class WebSocketServer {
     private int port;
     private ServerBootstrap bootstrap;
     private ChannelFactory factory;
+    private ExecutorService executor = null;
     private ChannelGroup webSocketChannelGroup = new DefaultChannelGroup("websocket");
 
     public WebSocketServer() {
@@ -49,6 +51,7 @@ public class WebSocketServer {
 
     public void start() {
         try {
+            executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
             factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors
                     .newCachedThreadPool());
             bootstrap = new ServerBootstrap(factory);
@@ -59,13 +62,13 @@ public class WebSocketServer {
                 public ChannelPipeline getPipeline() throws Exception {
                     final ChannelPipeline pipeline = pipeline();
 
-//                    pipeline.addLast("tls", new SslHandler(getSSLEngine()));
+                    // pipeline.addLast("tls", new SslHandler(getSSLEngine()));
 
                     pipeline.addLast("decoder", new HttpRequestDecoder());
                     pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
                     pipeline.addLast("encoder", new HttpResponseEncoder());
-                    pipeline.addLast("handler", new NettyWebSocketChannelHandler(Executors
-                            .newSingleThreadScheduledExecutor(), new CMWebSocketChannelHandler()));
+                    pipeline.addLast("handler", new NettyWebSocketChannelHandler(executor,
+                            new CMWebSocketChannelHandler()));
 
                     return pipeline;
                 }
@@ -124,6 +127,7 @@ public class WebSocketServer {
     }
 
     public void stop() {
+        executor.shutdownNow();
         webSocketChannelGroup.close().awaitUninterruptibly();
         factory.releaseExternalResources();
     }
