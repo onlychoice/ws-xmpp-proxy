@@ -92,7 +92,7 @@ class ServerPacketHandler {
                 }
             } else if ("result".equals(type)) {
                 if (Log.isDebugEnabled()) {
-                    Log.debug("IQ stanza of type RESULT was discarded: " + stanza.asXML());
+                    //Log.debug("IQ stanza of type RESULT was discarded: " + stanza.asXML());
                 }
             } else if ("error".equals(type)) {
                 // Close session if child element is CREATE
