@@ -4,8 +4,10 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -38,7 +40,7 @@ public class WebSocketServer {
     private int port;
     private ServerBootstrap bootstrap;
     private ChannelFactory factory;
-    private ExecutorService executor = null;
+    private ThreadPoolExecutor executor = null;
     private ChannelGroup webSocketChannelGroup = new DefaultChannelGroup("websocket");
 
     public WebSocketServer() {
@@ -51,7 +53,8 @@ public class WebSocketServer {
 
     public void start() {
         try {
-            executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 60,
+                    TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
             factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors
                     .newCachedThreadPool());
             bootstrap = new ServerBootstrap(factory);
