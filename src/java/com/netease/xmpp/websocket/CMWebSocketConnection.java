@@ -9,6 +9,7 @@ import java.nio.charset.CharsetEncoder;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -77,6 +78,8 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
     private int minorVersion = 0;
     private String language = null;
 
+    private AtomicLong respNum = new AtomicLong(0);
+
     // TODO Uso el #checkHealth????
     /**
      * TLS policy currently in use for this connection.
@@ -128,7 +131,7 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
         synchronized (this) {
             if (!isClosed()) {
                 try {
-//                    deliverRawText(flashClient ? "</flash:stream>" : "</stream:stream>", false);
+                    // deliverRawText(flashClient ? "</flash:stream>" : "</stream:stream>", false);
                 } catch (Exception e) {
                     // Ignore
                 }
@@ -140,14 +143,14 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
             notifyCloseListeners();
         }
     }
-    
+
     private void closeConnection() {
         channel.close();
     }
-    
+
     /**
-     * Notifies all close listeners that the connection has been closed.
-     * Used by subclasses to properly finish closing the connection.
+     * Notifies all close listeners that the connection has been closed. Used by subclasses to
+     * properly finish closing the connection.
      */
     private void notifyCloseListeners() {
         if (closeListener != null) {
@@ -201,6 +204,10 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
                 }
                 buffer.flip();
                 send(buffer.array());
+
+                if (stanza.indexOf("message") > 0) {
+                    Log.info("Response num: " + respNum.incrementAndGet());
+                }
             } catch (Exception e) {
                 Log.debug("Error delivering packet" + "\n" + this.toString(), e);
                 errorDelivering = true;
@@ -380,50 +387,50 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
 
     @Override
     public void startTLS(boolean clientMode, String remoteServer) throws Exception {
-//        KeyStore ksKeys = SSLConfig.getKeyStore();
-//        String keypass = SSLConfig.getKeyPassword();
-//
-//        KeyStore ksTrust = SSLConfig.getTrustStore();
-//        String trustpass = SSLConfig.getTrustPassword();
-//
-//        // KeyManager's decide which key material to use.
-//        KeyManager[] km = SSLJiveKeyManagerFactory.getKeyManagers(ksKeys, keypass);
-//
-//        // TrustManager's decide whether to allow connections.
-//        TrustManager[] tm = SSLJiveTrustManagerFactory.getTrustManagers(ksTrust, trustpass);
-//        // TODO Set proper value when s2s is supported
-//        boolean needClientAuth = false;
-//        if (clientMode || needClientAuth) {
-//            // Check if we can trust certificates presented by the server
-//            tm = new TrustManager[] { new ServerTrustManager(remoteServer, ksTrust) };
-//        }
-//
-//        SSLContext tlsContext = SSLContext.getInstance("TLS");
-//        tlsContext.init(km, tm, null);
-//        SSLEngine sslEngine = tlsContext.createSSLEngine();
-//        sslEngine.setUseClientMode(clientMode);
-//        if (needClientAuth) {
-//            // Only REQUIRE client authentication if we are fully verifying certificates
-//            if (JiveGlobals.getBooleanProperty("xmpp.server.certificate.verify", true)
-//                    && JiveGlobals.getBooleanProperty("xmpp.server.certificate.verify.chain", true)
-//                    && !JiveGlobals.getBooleanProperty("xmpp.server.certificate.accept-selfsigned",
-//                            false)) {
-//                sslEngine.setWantClientAuth(true);
-//            } else {
-//                // Just indicate that we would like to authenticate the client but if client
-//                // certificates are self-signed or have no certificate chain then we are still
-//                // good
-//                sslEngine.setWantClientAuth(true);
-//            }
-//        }
-//
-//        SslHandler handler = new SslHandler(sslEngine, true);
-//
-//        if (channel.getPipeline().get("tls") != null) {
-//            channel.getPipeline().remove("tls");
-//        }
-//
-//        channel.getPipeline().addFirst("tls", handler);
+        // KeyStore ksKeys = SSLConfig.getKeyStore();
+        // String keypass = SSLConfig.getKeyPassword();
+        //
+        // KeyStore ksTrust = SSLConfig.getTrustStore();
+        // String trustpass = SSLConfig.getTrustPassword();
+        //
+        // // KeyManager's decide which key material to use.
+        // KeyManager[] km = SSLJiveKeyManagerFactory.getKeyManagers(ksKeys, keypass);
+        //
+        // // TrustManager's decide whether to allow connections.
+        // TrustManager[] tm = SSLJiveTrustManagerFactory.getTrustManagers(ksTrust, trustpass);
+        // // TODO Set proper value when s2s is supported
+        // boolean needClientAuth = false;
+        // if (clientMode || needClientAuth) {
+        // // Check if we can trust certificates presented by the server
+        // tm = new TrustManager[] { new ServerTrustManager(remoteServer, ksTrust) };
+        // }
+        //
+        // SSLContext tlsContext = SSLContext.getInstance("TLS");
+        // tlsContext.init(km, tm, null);
+        // SSLEngine sslEngine = tlsContext.createSSLEngine();
+        // sslEngine.setUseClientMode(clientMode);
+        // if (needClientAuth) {
+        // // Only REQUIRE client authentication if we are fully verifying certificates
+        // if (JiveGlobals.getBooleanProperty("xmpp.server.certificate.verify", true)
+        // && JiveGlobals.getBooleanProperty("xmpp.server.certificate.verify.chain", true)
+        // && !JiveGlobals.getBooleanProperty("xmpp.server.certificate.accept-selfsigned",
+        // false)) {
+        // sslEngine.setWantClientAuth(true);
+        // } else {
+        // // Just indicate that we would like to authenticate the client but if client
+        // // certificates are self-signed or have no certificate chain then we are still
+        // // good
+        // sslEngine.setWantClientAuth(true);
+        // }
+        // }
+        //
+        // SslHandler handler = new SslHandler(sslEngine, true);
+        //
+        // if (channel.getPipeline().get("tls") != null) {
+        // channel.getPipeline().remove("tls");
+        // }
+        //
+        // channel.getPipeline().addFirst("tls", handler);
 
         if (!clientMode) {
             // Indicate the client that the server is ready to negotiate TLS
