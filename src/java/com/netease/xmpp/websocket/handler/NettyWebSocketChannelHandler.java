@@ -138,29 +138,25 @@ public class NettyWebSocketChannelHandler extends SimpleChannelUpstreamHandler {
     }
 
     private void handleWebSocketFrame(ChannelHandlerContext ctx, final WebSocketFrame frame) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (frame instanceof Pong) {
-                        handler.onPong(webSocketConnection, frame.getTextData());
-                    } else {
-                        if (frame.isText()) {
-                            handler.onMessage(webSocketConnection, frame.getTextData());
-                        } else {
-                            handler.onMessage(webSocketConnection, frame.getBinaryData().array());
-                        }
-                    }
-                } catch (Throwable t) {
-                    // TODO
-                    t.printStackTrace();
+        try {
+            if (frame instanceof Pong) {
+                handler.onPong(webSocketConnection, frame.getTextData());
+            } else {
+                if (frame.isText()) {
+                    handler.onMessage(webSocketConnection, frame.getTextData());
+                } else {
+                    handler.onMessage(webSocketConnection, frame.getBinaryData().array());
                 }
             }
-        });
+        } catch (Throwable t) {
+            // TODO
+            t.printStackTrace();
+        }
     }
 
     private void prepareConnection(HttpRequest req, HttpResponse res, ChannelHandlerContext ctx) {
-        this.webSocketConnection = new CMWebSocketConnection(ctx.getChannel(), new ClientFailoverDeliverer());
+        this.webSocketConnection = new CMWebSocketConnection(ctx.getChannel(),
+                new ClientFailoverDeliverer());
 
         if (isHybi10WebSocketRequest(req)) {
             this.webSocketConnection.setVersion(WebSocketConnection.Version.HYBI_10);
@@ -204,8 +200,10 @@ public class NettyWebSocketChannelHandler extends SimpleChannelUpstreamHandler {
         return req.containsHeader(SEC_WEBSOCKET_KEY1) && req.containsHeader(SEC_WEBSOCKET_KEY2);
     }
 
-    private byte[] sha1(String s) {
-        return SHA_1.digest(s.getBytes(ASCII));
+    private static synchronized String generateAccept(String key) {
+        String s = key + ACCEPT_GUID;
+        byte[] b = SHA_1.digest(s.getBytes(ASCII));
+        return encoder.encode(b);
     }
 
     private void upgradeResponseHybi10(HttpRequest req, HttpResponse res) {
@@ -222,7 +220,7 @@ public class NettyWebSocketChannelHandler extends SimpleChannelUpstreamHandler {
             return;
         }
 
-        String accept = encoder.encode(sha1(key + ACCEPT_GUID));
+        String accept = generateAccept(key);
 
         res.setStatus(new HttpResponseStatus(101, "Switching Protocols"));
         res.addHeader(UPGRADE, WEBSOCKET.toLowerCase());
