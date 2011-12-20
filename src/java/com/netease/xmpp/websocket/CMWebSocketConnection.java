@@ -78,8 +78,8 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
     private int minorVersion = 0;
     private String language = null;
 
-    private AtomicLong respNum = new AtomicLong(0);
-
+    private static AtomicLong respNum = new AtomicLong(0);
+    
     // TODO Uso el #checkHealth????
     /**
      * TLS policy currently in use for this connection.

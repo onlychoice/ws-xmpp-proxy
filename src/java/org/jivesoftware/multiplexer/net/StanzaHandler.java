@@ -54,7 +54,7 @@ abstract class StanzaHandler {
     // DANIELE: Indicate if a stream:stream is arrived to complete compression
     private boolean waitingCompressionACK = false;
     
-    private AtomicLong reqNum = new AtomicLong(0);
+    private static AtomicLong reqNum = new AtomicLong(0);
 
     /**
      * Session associated with the socket reader.
