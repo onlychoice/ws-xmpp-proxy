@@ -479,6 +479,8 @@ public class ConnectionWorkerThread extends Thread {
         // Forward the wrapped stanza to the server
         connection.deliver(sb.toString());
         
-        XmppMessageEventListener.getInstance().onMessageSendToServer(Session.getSession(streamID), stanza);
+        if(stanza.indexOf("message") > 0) {
+            XmppMessageEventListener.getInstance().onMessageSendToServer(Session.getSession(streamID), stanza);
+        }
     }
 }
