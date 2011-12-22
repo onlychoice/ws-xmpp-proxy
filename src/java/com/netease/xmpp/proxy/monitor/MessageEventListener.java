@@ -4,5 +4,7 @@ import org.jivesoftware.multiplexer.Session;
 
 public interface MessageEventListener {
     public void onMessageReceived(Session session, String message);
+    public void onMessageSendToServer(Session session, String message);
+    public void onMessageReceivedFromServer(Session session, String message);
     public void onMessageSend(Session session, String message);
 }

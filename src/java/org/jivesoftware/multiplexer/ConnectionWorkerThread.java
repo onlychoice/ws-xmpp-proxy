@@ -12,6 +12,7 @@ package org.jivesoftware.multiplexer;
 import com.jcraft.jzlib.JZlib;
 import com.jcraft.jzlib.ZInputStream;
 import com.netease.xmpp.master.common.ServerListProtos.Server.ServerInfo;
+import com.netease.xmpp.proxy.monitor.XmppMessageEventListener;
 
 import org.dom4j.Element;
 import org.dom4j.io.XMPPPacketReader;
@@ -477,5 +478,7 @@ public class ConnectionWorkerThread extends Thread {
 
         // Forward the wrapped stanza to the server
         connection.deliver(sb.toString());
+        
+        XmppMessageEventListener.getInstance().onMessageSendToServer(Session.getSession(streamID), stanza);
     }
 }

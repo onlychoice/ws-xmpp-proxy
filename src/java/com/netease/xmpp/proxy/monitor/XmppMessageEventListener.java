@@ -9,6 +9,9 @@ import org.jivesoftware.multiplexer.Session;
 public class XmppMessageEventListener implements MessageEventListener {
     private AtomicLong requestNum = new AtomicLong(0);
     private AtomicLong responseNum = new AtomicLong(0);
+    
+    private AtomicLong requestToServerNum = new AtomicLong(0);
+    private AtomicLong responseFromServerNum = new AtomicLong(0);
 
     private Executor executor = Executors.newSingleThreadExecutor();
 
@@ -25,9 +28,13 @@ public class XmppMessageEventListener implements MessageEventListener {
         @Override
         public void run() {
             while (true) {
-                System.out.println("Request number: " + requestNum.get());
-                System.out.println("Response number: " + responseNum.get());
-
+                System.out.println("REQ: " + requestNum.get());
+                
+                System.out.println("REQS: " + requestToServerNum.get());
+                System.out.println("RESPS: " + responseFromServerNum.get());
+                
+                System.out.println("RESP: " + responseNum.get());
+                
                 try {
                     Thread.sleep(30 * 1000);
                 } catch (InterruptedException e) {
@@ -49,5 +56,15 @@ public class XmppMessageEventListener implements MessageEventListener {
     @Override
     public void onMessageSend(Session session, String message) {
         responseNum.incrementAndGet();
+    }
+
+    @Override
+    public void onMessageSendToServer(Session session, String message) {
+        requestToServerNum.incrementAndGet();
+    }
+    
+    @Override
+    public void onMessageReceivedFromServer(Session session, String message) {
+        responseFromServerNum.incrementAndGet();
     }
 }
