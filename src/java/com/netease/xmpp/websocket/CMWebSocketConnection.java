@@ -9,7 +9,6 @@ import java.nio.charset.CharsetEncoder;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -40,6 +39,7 @@ import org.jivesoftware.util.Log;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.netease.xmpp.proxy.monitor.XmppMessageEventListener;
 import com.netease.xmpp.websocket.codec.Ping;
 import com.netease.xmpp.websocket.handler.WebSocketConnection;
 
@@ -78,8 +78,6 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
     private int minorVersion = 0;
     private String language = null;
 
-    private static AtomicLong respNum = new AtomicLong(0);
-    
     // TODO Uso el #checkHealth????
     /**
      * TLS policy currently in use for this connection.
@@ -206,7 +204,7 @@ public class CMWebSocketConnection implements WebSocketConnection, Connection {
                 send(buffer.array());
 
                 if (stanza.indexOf("message") > 0) {
-                    Log.info("Response num: " + respNum.incrementAndGet());
+                    XmppMessageEventListener.getInstance().onMessageSend(session, stanza);
                 }
             } catch (Exception e) {
                 Log.debug("Error delivering packet" + "\n" + this.toString(), e);

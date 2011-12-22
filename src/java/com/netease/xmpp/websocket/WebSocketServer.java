@@ -32,6 +32,7 @@ import org.jivesoftware.multiplexer.net.SSLJiveTrustManagerFactory;
 import org.jivesoftware.multiplexer.net.ServerTrustManager;
 import org.jivesoftware.util.JiveGlobals;
 
+import com.netease.xmpp.proxy.monitor.XmppMessageEventListener;
 import com.netease.xmpp.websocket.handler.NettyWebSocketChannelHandler;
 
 public class WebSocketServer {
@@ -53,6 +54,9 @@ public class WebSocketServer {
 
     public void start() {
         try {
+            // Make sure listener instance init correctly
+            XmppMessageEventListener.getInstance();
+            
             executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 60,
                     TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
             factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors

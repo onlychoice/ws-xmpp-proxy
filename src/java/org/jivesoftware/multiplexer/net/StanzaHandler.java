@@ -18,9 +18,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import com.netease.xmpp.proxy.monitor.XmppMessageEventListener;
+
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A StanzaHandler is the main responsible for handling incoming stanzas. Some stanzas like startTLS
@@ -54,8 +55,6 @@ abstract class StanzaHandler {
     // DANIELE: Indicate if a stream:stream is arrived to complete compression
     private boolean waitingCompressionACK = false;
     
-    private static AtomicLong reqNum = new AtomicLong(0);
-
     /**
      * Session associated with the socket reader.
      */
@@ -176,7 +175,7 @@ abstract class StanzaHandler {
                 // message from client, response a simple message immediately
                 connection.deliverRawText(" ");
                 
-                Log.info("Request num: " + reqNum.incrementAndGet());
+                XmppMessageEventListener.getInstance().onMessageReceived(session, stanza);
             }
             route(stanza);
         }
