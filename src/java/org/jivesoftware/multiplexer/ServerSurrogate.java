@@ -334,9 +334,9 @@ public class ServerSurrogate {
                         serverHashMap.put(streamID, server);
                     }
 
-                    System.out.println("USER=" + session.getUserName() + ", ID=" + streamID
-                            + ", hash=" + hash + ", SERVER=" + server.getIp() + ":"
-                            + server.getHash());
+//                    System.out.println("USER=" + session.getUserName() + ", ID=" + streamID
+//                            + ", hash=" + hash + ", SERVER=" + server.getIp() + ":"
+//                            + server.getHash());
                     threadPoolList.get(index).execute(new NewSessionTask(streamID, address));
                 }
             }
@@ -364,8 +364,8 @@ public class ServerSurrogate {
                     synchronized (sessionServerMaps) {
                         Map<String, Session> sessionMap = sessionServerMaps.get(server.getHash());
                         if (sessionMap != null) {
-                            System.out.println("CLOSED=" + sessionMap.get(streamID).getUserName()
-                                    + ", Server: " + server.getIp());
+//                            System.out.println("CLOSED=" + sessionMap.get(streamID).getUserName()
+//                                    + ", Server: " + server.getIp());
                             sessionMap.remove(streamID);
                         }
 

@@ -57,7 +57,7 @@ public class WebSocketServer {
             // Make sure listener instance init correctly
             XmppMessageEventListener.getInstance();
             
-            executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 60,
+            executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 50, 60,
                     TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
             factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors
                     .newCachedThreadPool());
