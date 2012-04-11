@@ -17,7 +17,7 @@
         * jUnit in your Ant or Java classpath
 -->
 
-<project name="Connection Manager" default="all" basedir="..">
+<project name="WXProxy" default="all" basedir="..">
 
     <description>
         Connection Manager build script.
@@ -65,7 +65,7 @@
     <property name="version.minor" value="0"/>
     <property name="version.revision" value="0"/>
     <property name="version.extra" value=""/> <!-- For 'beta' or 'alpha' -->
-    <property name="dist.prefix" value="WXProxy"/>
+    <property name="dist.prefix" value="proxy"/>
 
     <property file="${basedir}/build/build.properties"/>
 
@@ -194,11 +194,11 @@
             <equals arg1="${version.extra}" arg2=""/>
             <then>
                 <property name="version" value="${version.major}.${version.minor}.${version.revision}"/>
-                <property name="version.filename" value="${version.major}_${version.minor}_${version.revision}"/>
+                <property name="version.filename" value="${version.major}.${version.minor}.${version.revision}"/>
             </then>
             <else>
                 <property name="version" value="${version.major}.${version.minor}.${version.revision}.${version.extra}"/>
-                <property name="version.filename" value="${version.major}_${version.minor}_${version.revision}_${version.extra}"/>
+                <property name="version.filename" value="${version.major}.${version.minor}.${version.revision}"/>
             </else>
         </if>
 
@@ -417,11 +417,11 @@
         <!-- ie: connection_manager_src -->
         <property name="release.name.src" value="${dist.prefix}_src"/>
         <!-- ie: connection_manager_2_1_2 -->
-        <property name="release.fullname" value="${dist.prefix}_${version.filename}"/>
+        <property name="release.fullname" value="${dist.prefix}-${version.filename}"/>
         <!-- ie: connection_manager_src_2_1_2 -->
         <property name="release.fullname.src" value="${dist.prefix}_src_${version.filename}"/>
 
-        <property name="release.out.dir" value="${release.dest.dir}/${release.name}"/>
+        <property name="release.out.dir" value="${release.dest.dir}/${release.name}-${version.filename}"/>
         <property name="release.src.out.dir" value="${release.dest.dir}/${release.name.src}"/>
 
         <mkdir dir="${release.out.dir}"/>
