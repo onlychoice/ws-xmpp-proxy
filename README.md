@@ -1,5 +1,6 @@
-ws-xmpp-proxy - Based on the Openfire Connection Mannager and add the client entry for websocket.
+ws-xmpp-proxy
 ===============
+Based on the Openfire Connection Mannager and add the client entry for websocket.
 
 Getting Started
 ---------------
