@@ -1,1 +1,0 @@
-Based on the Openfire Connection Mannager and add the client entry for websocket.
